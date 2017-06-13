@@ -50,7 +50,8 @@ def load_net(fname, net):
 
 
 def load_pretrained_npy(faster_rcnn_model, fname):
-    params = np.load(fname).item()
+    params = np.load(fname, encoding="latin1").item()
+    print(params.keys())
     # vgg16
     vgg16_dict = faster_rcnn_model.rpn.features.state_dict()
     for name, val in vgg16_dict.items():

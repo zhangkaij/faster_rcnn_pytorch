@@ -12,7 +12,7 @@ import os
 import numpy as np
 import scipy.sparse
 import subprocess
-import cPickle
+import pickle
 import math
 import glob
 import uuid
@@ -21,7 +21,7 @@ import xml.etree.ElementTree as ET
 
 from .imdb import imdb
 from .imdb import ROOT_DIR
-import ds_utils
+from . import ds_utils
 from .voc_eval import voc_eval
 
 # TODO: make fast_rcnn irrelevant
@@ -109,14 +109,14 @@ class kittivoc(imdb):
         if os.path.exists(cache_file):
             with open(cache_file, 'rb') as fid:
                 roidb = cPickle.load(fid)
-            print '{} gt roidb loaded from {}'.format(self.name, cache_file)
+            print('{} gt roidb loaded from {}'.format(self.name, cache_file))
             return roidb
 
         gt_roidb = [self._load_pascal_annotation(index)
                     for index in self.image_index]
         with open(cache_file, 'wb') as fid:
             cPickle.dump(gt_roidb, fid, cPickle.HIGHEST_PROTOCOL)
-        print 'wrote gt roidb to {}'.format(cache_file)
+        print('wrote gt roidb to {}'.format(cache_file))
 
         return gt_roidb
 
@@ -133,7 +133,7 @@ class kittivoc(imdb):
         if os.path.exists(cache_file):
             with open(cache_file, 'rb') as fid:
                 roidb = cPickle.load(fid)
-            print '{} ss roidb loaded from {}'.format(self.name, cache_file)
+            print('{} ss roidb loaded from {}'.format(self.name, cache_file))
             return roidb
 
         if self._image_set != 'test':
@@ -144,7 +144,7 @@ class kittivoc(imdb):
             roidb = self._load_selective_search_roidb(None)
         with open(cache_file, 'wb') as fid:
             cPickle.dump(roidb, fid, cPickle.HIGHEST_PROTOCOL)
-        print 'wrote ss roidb to {}'.format(cache_file)
+        print('wrote ss roidb to {}'.format(cache_file))
 
         return roidb
 
@@ -160,7 +160,7 @@ class kittivoc(imdb):
 
     def _load_rpn_roidb(self, gt_roidb):
         filename = self.config['rpn_file']
-        print 'loading {}'.format(filename)
+        print('loading {}'.format(filename))
         assert os.path.exists(filename), \
                'rpn data not found at: {}'.format(filename)
         with open(filename, 'rb') as f:
@@ -190,7 +190,7 @@ class kittivoc(imdb):
         """
         Remove images with zero annotation ()
         """
-        print 'Remove empty annotations: ',
+        print('Remove empty annotations: ')
         for i in range(len(self._image_index)-1, -1, -1):
             index = self._image_index[i]
             filename = os.path.join(self._data_path, 'Annotations', index + '.xml')
@@ -201,9 +201,9 @@ class kittivoc(imdb):
                     int(obj.find('difficult').text) == 0 and obj.find('name').text.lower().strip() != 'dontcare']
             num_objs = len(non_diff_objs)
             if num_objs == 0:
-                print index,
+                print(index)
                 self._image_index.pop(i)
-        print 'Done. '
+        print('Done. ')
 
     def _load_pascal_annotation(self, index):
         """
@@ -293,7 +293,7 @@ class kittivoc(imdb):
         for cls_ind, cls in enumerate(self.classes):
             if cls == '__background__':
                 continue
-            print 'Writing {} VOC results file'.format(cls)
+            print('Writing {} VOC results file'.format(cls))
             filename = self._get_voc_results_file_template().format(cls)
             with open(filename, 'wt') as f:
                 for im_ind, index in enumerate(self.image_index):
@@ -319,7 +319,7 @@ class kittivoc(imdb):
         aps = []
         # The PASCAL VOC metric changed in 2010
         use_07_metric = False
-        print 'VOC07 metric? ' + ('Yes' if use_07_metric else 'No')
+        print('VOC07 metric? ' + ('Yes' if use_07_metric else 'No'))
         if not os.path.isdir(output_dir):
             os.mkdir(output_dir)
         for i, cls in enumerate(self._classes):
@@ -348,9 +348,9 @@ class kittivoc(imdb):
         print('--------------------------------------------------------------')
 
     def _do_matlab_eval(self, output_dir='output'):
-        print '-----------------------------------------------------'
-        print 'Computing results with the official MATLAB eval code.'
-        print '-----------------------------------------------------'
+        print('-----------------------------------------------------')
+        print('Computing results with the official MATLAB eval code.')
+        print('-----------------------------------------------------')
         path = os.path.join(cfg.ROOT_DIR, 'lib', 'datasets',
                             'VOCdevkit-matlab-wrapper')
         cmd = 'cd {} && '.format(path)

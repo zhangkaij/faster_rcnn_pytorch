@@ -21,6 +21,7 @@ def find_in_path(name, path):
         if os.path.exists(binpath):
             return os.path.abspath(binpath)
     return None
+FileExistsError(17, 'File exists')
 
 
 def locate_cuda():
@@ -42,14 +43,13 @@ def locate_cuda():
         default_path = pjoin(os.sep, 'usr', 'local', 'cuda', 'bin')
         nvcc = find_in_path('nvcc', os.environ['PATH'] + os.pathsep + default_path)
         if nvcc is None:
-            raise EnvironmentError('The nvcc binary could not be '
-                                   'located in your $PATH. Either add it to your path, or set $CUDAHOME')
+            raise EnvironmentError('The nvcc binary could not be located in your $PATH. Either add it to your path, or set $CUDAHOME')
         home = os.path.dirname(os.path.dirname(nvcc))
 
     cudaconfig = {'home': home, 'nvcc': nvcc,
                   'include': pjoin(home, 'include'),
                   'lib64': pjoin(home, 'lib64')}
-    for k, v in cudaconfig.iteritems():
+    for k, v in cudaconfig.items():
         if not os.path.exists(v):
             raise EnvironmentError('The CUDA %s path could not be located in %s' % (k, v))
 
@@ -86,7 +86,7 @@ def customize_compiler_for_nvcc(self):
     # object but distutils doesn't have the ability to change compilers
     # based on source extension: we add it.
     def _compile(obj, src, ext, cc_args, extra_postargs, pp_opts):
-        print extra_postargs
+        print(extra_postargs)
         if os.path.splitext(src)[1] == '.cu':
             # use the cuda for .cu files
             self.set_executable('compiler_so', CUDA['nvcc'])
