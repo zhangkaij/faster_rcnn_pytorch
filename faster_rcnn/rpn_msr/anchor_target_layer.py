@@ -47,6 +47,7 @@ def anchor_target_layer(rpn_cls_score, gt_boxes, gt_ishard, dontcare_areas, im_i
     rpn_bbox_outside_weights: (HxWxA, 4) used to balance the fg/bg,
                             beacuse the numbers of bgs and fgs mays significiantly different
     """
+#以下一堆代码选出有效的anchor，就是边框值不能超过边界或者为负
     _anchors = generate_anchors(scales=np.array(anchor_scales))
     _num_anchors = _anchors.shape[0]
 
@@ -131,6 +132,8 @@ def anchor_target_layer(rpn_cls_score, gt_boxes, gt_ishard, dontcare_areas, im_i
     if DEBUG:
         print('anchors.shape', anchors.shape)
 
+# 接下来的代码给label赋值, 大于阈值的赋值为1，小于阈值的赋值为0，其余的赋值为-1
+# 由于超过batchsize，超过部分仍然赋值为-1
     # label: 1 is positive, 0 is negative, -1 is dont care
     # (A)
     labels = np.empty((len(inds_inside),), dtype=np.float32)
@@ -162,6 +165,7 @@ def anchor_target_layer(rpn_cls_score, gt_boxes, gt_ishard, dontcare_areas, im_i
         labels[max_overlaps < cfg.TRAIN.RPN_NEGATIVE_OVERLAP] = 0
 
     # preclude dontcare areas
+    # 与计算重叠度函数相似，（重叠区域）/（dontcare areas) > threshold
     if dontcare_areas is not None and dontcare_areas.shape[0] > 0:
         # intersec shape is D x A
         intersecs = bbox_intersections(
@@ -205,6 +209,7 @@ def anchor_target_layer(rpn_cls_score, gt_boxes, gt_ishard, dontcare_areas, im_i
         # len(bg_inds), len(disable_inds), np.sum(labels == 0))
 
     # bbox_targets = np.zeros((len(inds_inside), 4), dtype=np.float32)
+    # @zhangkj 计算anchor与真实box的deta，利用论文中的公式2
     bbox_targets = _compute_targets(anchors, gt_boxes[argmax_overlaps, :])
 
     bbox_inside_weights = np.zeros((len(inds_inside), 4), dtype=np.float32)

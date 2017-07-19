@@ -58,6 +58,7 @@ def proposal_layer(rpn_cls_prob_reshape, rpn_bbox_pred, im_info, cfg_key, _feat_
     #layer_params = yaml.load(self.param_str_)
 
     """
+# 生成anchor
     _anchors = generate_anchors(scales=np.array(anchor_scales))
     _num_anchors = _anchors.shape[0]
     # rpn_cls_prob_reshape = np.transpose(rpn_cls_prob_reshape,[0,3,1,2]) #-> (1 , 2xA, H , W)
@@ -71,9 +72,14 @@ def proposal_layer(rpn_cls_prob_reshape, rpn_bbox_pred, im_info, cfg_key, _feat_
         'Only single item batches are supported'
     # cfg_key = str(self.phase) # either 'TRAIN' or 'TEST'
     # cfg_key = 'TEST'
+    
+    # training: 12000; testing: 6000
     pre_nms_topN = cfg[cfg_key].RPN_PRE_NMS_TOP_N
+    # training: 2000; testing: 300
     post_nms_topN = cfg[cfg_key].RPN_POST_NMS_TOP_N
+    # training: 0.7; testing: 0.7
     nms_thresh = cfg[cfg_key].RPN_NMS_THRESH
+    # training: 16; testing: 16
     min_size = cfg[cfg_key].RPN_MIN_SIZE
 
     # the first set of _num_anchors channels are bg probs
@@ -99,6 +105,7 @@ def proposal_layer(rpn_cls_prob_reshape, rpn_bbox_pred, im_info, cfg_key, _feat_
     shifts = np.vstack((shift_x.ravel(), shift_y.ravel(),
                         shift_x.ravel(), shift_y.ravel())).transpose()
 
+# @zhangkj 枚举出所有的anchor
     # Enumerate all shifted anchors:
     #
     # add A anchors (1, A, 4) to
@@ -126,7 +133,8 @@ def proposal_layer(rpn_cls_prob_reshape, rpn_bbox_pred, im_info, cfg_key, _feat_
     # transpose to (1, H, W, A)
     # reshape to (1 * H * W * A, 1) where rows are ordered by (h, w, a)
     scores = scores.transpose((0, 2, 3, 1)).reshape((-1, 1))
-
+    
+# 由anchor和bbox_deltas，得到建议的边框
     # Convert anchors into proposals via bbox transformations
     proposals = bbox_transform_inv(anchors, bbox_deltas)
 
