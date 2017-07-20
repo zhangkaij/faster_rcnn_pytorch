@@ -36,7 +36,7 @@ def log_print(text, color=None, on_color=None, attrs=None):
 imdb_name = 'voc_2007_trainval'
 cfg_file = 'experiments/cfgs/faster_rcnn_end2end.yml'
 pretrained_model = 'data/pretrained_model/VGG_imagenet.npy'
-output_dir = 'models/saved_model3'
+output_dir = 'model/saved_model3'
 
 start_step = 0
 end_step = 100000
@@ -122,7 +122,8 @@ for step in range(start_step, end_step+1):
     # forward
     net(im_data, im_info, gt_boxes, gt_ishard, dontcare_areas)
     loss = net.loss + net.rpn.loss
-
+    exit()
+    
     if _DEBUG:
         tp += float(net.tp)
         tf += float(net.tf)

@@ -1,3 +1,4 @@
+import torch
 from torch.nn.modules.module import Module
 from ..functions.roi_pool import RoIPoolFunction
 
@@ -12,3 +13,53 @@ class RoIPool(Module):
 
     def forward(self, features, rois):
         return RoIPoolFunction(self.pooled_height, self.pooled_width, self.spatial_scale)(features, rois)
+
+
+def data_select(input, dim, pooled_len, data_len):
+    """
+    
+    """
+    shift = 1.0 * data_len / pooled_len * torch.arange(0, pooled_len+1)
+    shift_start = torch.floor(shift).long()[:-1]
+    shift_end   = torch.ceil(shift).long()[1:]
+    shift_stride = shift_end - shift_start + 1
+    stride_max = torch.max(shift_stride)
+    
+    shift_index = torch.arange(0, stride_max).long().unsqueeze(0).expand(pooled_len, stride_max).contiguous().view(1, -1).squeeze()
+    index_ceil = shift_stride.unsqueeze(2-dim).expand(pooled_len, stride_max).contiguous().view(1, -1).squeeze()
+    shift_index[shift_index.ge(index_ceil)] = 0
+    
+    index_start = shift_start.unsqueeze(1).expand(pooled_len, stride_max).contiguous().view(1, -1).squeeze()
+    index = index_start + shift_index
+    index = torch.clamp(index, max=(data_len-1))
+
+    output = torch.index_select(input, dim, index)
+    return output, stride_max
+
+def max_pool(input, w_stride, h_stride):
+
+    C, H, W = input.size()
+
+    output = input.view(C, H, int(W/w_stride), w_stride).permute(0, 2, 1, 3).contiguous().view(-1, h_stride, w_stride)\
+            .contiguous().view(-1, h_stride*w_stride)
+    output, _ = torch.max(output, 1)
+    output = output.view(C, int(W/w_stride), int(H/h_stride)).permute(0, 2, 1)
+    
+    return output
+  
+
+def RoIPool(input, pooled_height=2, pooled_width=3, spatial_scale=16.0):
+
+    C, H, W = input.size()
+    # 先选择列
+    output_col, w_stride= data_select(input, dim=2, pooled_len=pooled_width, data_len=W)
+    # 选择行
+    output, h_stride = data_select(output_col, dim=1, pooled_len=pooled_height, data_len=H)
+    output = max_pool(output, w_stride, h_stride)
+
+    return output
+
+
+
+
+
