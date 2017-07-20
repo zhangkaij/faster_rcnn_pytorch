@@ -181,7 +181,7 @@ class pascal_voc(imdb):
         raw_data = sio.loadmat(filename)['boxes'].ravel()
 
         box_list = []
-        for i in xrange(raw_data.shape[0]):
+        for i in range(raw_data.shape[0]):
             boxes = raw_data[i][:, (1, 0, 3, 2)] - 1
             keep = ds_utils.unique_boxes(boxes)
             boxes = boxes[keep, :]
@@ -270,7 +270,7 @@ class pascal_voc(imdb):
                     if dets == []:
                         continue
                     # the VOCdevkit expects 1-based indices
-                    for k in xrange(dets.shape[0]):
+                    for k in range(dets.shape[0]):
                         f.write('{:s} {:.3f} {:.1f} {:.1f} {:.1f} {:.1f}\n'.
                                 format(index, dets[k, -1],
                                        dets[k, 0] + 1, dets[k, 1] + 1,

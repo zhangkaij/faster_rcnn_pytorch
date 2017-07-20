@@ -57,6 +57,7 @@ class RPN(nn.Module):
         rpn_conv1 = self.conv1(features)
 
         # rpn score
+        #感觉此处代码有问题，尤其是两个reshape函数
         rpn_cls_score = self.score_conv(rpn_conv1)
         rpn_cls_score_reshape = self.reshape_layer(rpn_cls_score, 2)
         rpn_cls_prob = F.softmax(rpn_cls_score_reshape)
@@ -64,13 +65,14 @@ class RPN(nn.Module):
 
         # rpn boxes
         rpn_bbox_pred = self.bbox_conv(rpn_conv1)
-
+#产生预测边框
         # proposal layer
         cfg_key = 'TRAIN' if self.training else 'TEST'
         rois = self.proposal_layer(rpn_cls_prob_reshape, rpn_bbox_pred, im_info,
                                    cfg_key, self._feat_stride, self.anchor_scales)
 
         # generating training labels and build the rpn loss
+        # 主要实现预测边框，真实边框，anchor之间的对应，为接下来的计算loss提供数据
         if self.training:
             assert gt_boxes is not None
             rpn_data = self.anchor_target_layer(rpn_cls_score, gt_boxes, gt_ishard, dontcare_areas,
@@ -103,6 +105,9 @@ class RPN(nn.Module):
 
     @staticmethod
     def reshape_layer(x, d):
+        # reshape input 
+        # input  shape: n * (k * d) * w * h
+        # output shape: n * d * (k * w) * h
         input_shape = x.size()
         # x = x.permute(0, 3, 1, 2)
         # b c w h
@@ -116,6 +121,7 @@ class RPN(nn.Module):
         return x
 
     @staticmethod
+    # 此函数放在CPU里面处理，与放在GPU中方法相比不合理
     def proposal_layer(rpn_cls_prob_reshape, rpn_bbox_pred, im_info, cfg_key, _feat_stride, anchor_scales):
         rpn_cls_prob_reshape = rpn_cls_prob_reshape.data.cpu().numpy()
         rpn_bbox_pred = rpn_bbox_pred.data.cpu().numpy()
@@ -124,7 +130,8 @@ class RPN(nn.Module):
         return x.view(-1, 5)
 
     @staticmethod
-    def anchor_target_layer(rpn_cls_score, gt_boxes, gt_ishard, dontcare_areas, im_info, _feat_stride, anchor_scales):
+    def anchor_target_layer(rpn_cls_score, gt_boxes, gt_ishard, dontcare_areas,
+        im_info, _feat_stride, anchor_scales):
         """
         rpn_cls_score: for pytorch (1, Ax2, H, W) bg/fg scores of previous conv layer
         gt_boxes: (G, 5) vstack of [x1, y1, x2, y2, class]
