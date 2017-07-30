@@ -39,7 +39,7 @@ class kittivoc(imdb):
         self._data_path = self._devkit_path
         self._classes = ('__background__', # always index 0
                          'pedestrian', 'car', 'cyclist')
-        self._class_to_ind = dict(zip(self.classes, xrange(self.num_classes)))
+        self._class_to_ind = dict(zip(self.classes, range(self.num_classes)))
         self._image_ext = '.jpg'
         self._image_index = self._load_image_set_index()
         self._remove_empty_samples()
@@ -108,14 +108,14 @@ class kittivoc(imdb):
         cache_file = os.path.join(self.cache_path, self.name + '_gt_roidb.pkl')
         if os.path.exists(cache_file):
             with open(cache_file, 'rb') as fid:
-                roidb = cPickle.load(fid)
+                roidb = pickle.load(fid)
             print('{} gt roidb loaded from {}'.format(self.name, cache_file))
             return roidb
 
         gt_roidb = [self._load_pascal_annotation(index)
                     for index in self.image_index]
         with open(cache_file, 'wb') as fid:
-            cPickle.dump(gt_roidb, fid, cPickle.HIGHEST_PROTOCOL)
+            pickle.dump(gt_roidb, fid, pickle.HIGHEST_PROTOCOL)
         print('wrote gt roidb to {}'.format(cache_file))
 
         return gt_roidb
@@ -132,7 +132,7 @@ class kittivoc(imdb):
 
         if os.path.exists(cache_file):
             with open(cache_file, 'rb') as fid:
-                roidb = cPickle.load(fid)
+                roidb = pickle.load(fid)
             print('{} ss roidb loaded from {}'.format(self.name, cache_file))
             return roidb
 
@@ -143,7 +143,7 @@ class kittivoc(imdb):
         else:
             roidb = self._load_selective_search_roidb(None)
         with open(cache_file, 'wb') as fid:
-            cPickle.dump(roidb, fid, cPickle.HIGHEST_PROTOCOL)
+            pickle.dump(roidb, fid, pickle.HIGHEST_PROTOCOL)
         print('wrote ss roidb to {}'.format(cache_file))
 
         return roidb
@@ -164,7 +164,7 @@ class kittivoc(imdb):
         assert os.path.exists(filename), \
                'rpn data not found at: {}'.format(filename)
         with open(filename, 'rb') as f:
-            box_list = cPickle.load(f)
+            box_list = pickle.load(f)
         return self.create_roidb_from_box_list(box_list, gt_roidb)
 
     def _load_selective_search_roidb(self, gt_roidb):
@@ -176,7 +176,7 @@ class kittivoc(imdb):
         raw_data = sio.loadmat(filename)['boxes'].ravel()
 
         box_list = []
-        for i in xrange(raw_data.shape[0]):
+        for i in range(raw_data.shape[0]):
             boxes = raw_data[i][:, (1, 0, 3, 2)] - 1
             keep = ds_utils.unique_boxes(boxes)
             boxes = boxes[keep, :]
@@ -301,7 +301,7 @@ class kittivoc(imdb):
                     if dets == []:
                         continue
                     # the VOCdevkit expects 1-based indices
-                    for k in xrange(dets.shape[0]):
+                    for k in range(dets.shape[0]):
                         f.write('{:s} {:.3f} {:.1f} {:.1f} {:.1f} {:.1f}\n'.
                             format(index, dets[k, -1],              # filename(stem), score
                                    dets[k, 0] + 1, dets[k, 1] + 1,  # x1, y1, x2, y2
@@ -331,7 +331,7 @@ class kittivoc(imdb):
             aps += [ap]
             print('AP for {} = {:.4f}'.format(cls, ap))
             with open(os.path.join(output_dir, cls + '_pr.pkl'), 'w') as f:
-                cPickle.dump({'rec': rec, 'prec': prec, 'ap': ap}, f)
+                pickle.dump({'rec': rec, 'prec': prec, 'ap': ap}, f)
         print('Mean AP = {:.4f}'.format(np.mean(aps)))
         print('~~~~~~~~')
         print('Results:')

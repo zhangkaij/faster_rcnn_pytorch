@@ -41,7 +41,7 @@ class imagenet3d(imdb):
              'sofa', 'speaker', 'spoon', 'stapler', 'stove', 'suitcase', 'teapot', 'telephone', \
              'toaster', 'toilet', 'toothbrush', 'train', 'trash_bin', 'trophy', 'tub', 'tvmonitor', \
              'vending_machine', 'washing_machine', 'watch', 'wheelchair')
-        self._class_to_ind = dict(zip(self.classes, xrange(self.num_classes)))
+        self._class_to_ind = dict(zip(self.classes, range(self.num_classes)))
         self._image_ext = '.JPEG'
         self._image_index = self._load_image_set_index()
         # Default to roidb handler
@@ -107,7 +107,7 @@ class imagenet3d(imdb):
         cache_file = os.path.join(self.cache_path, self.name + '_' + cfg.SUBCLS_NAME + '_gt_roidb.pkl')
         if os.path.exists(cache_file):
             with open(cache_file, 'rb') as fid:
-                roidb = cPickle.load(fid)
+                roidb = pickle.load(fid)
             print('{} gt roidb loaded from {}'.format(self.name, cache_file))
             return roidb
 
@@ -116,13 +116,13 @@ class imagenet3d(imdb):
 
         if cfg.IS_RPN:
             # print out recall
-            for i in xrange(1, self.num_classes):
+            for i in range(1, self.num_classes):
                 print('{}: Total number of boxes {:d}'.format(self.classes[i], self._num_boxes_all[i]))
                 print('{}: Number of boxes covered {:d}'.format(self.classes[i], self._num_boxes_covered[i]))
                 print('{}: Recall {:f}'.format(self.classes[i], float(self._num_boxes_covered[i]) / float(self._num_boxes_all[i])))
 
         with open(cache_file, 'wb') as fid:
-            cPickle.dump(gt_roidb, fid, cPickle.HIGHEST_PROTOCOL)
+            pickle.dump(gt_roidb, fid, pickle.HIGHEST_PROTOCOL)
         print('wrote gt roidb to {}'.format(cache_file))
 
         return gt_roidb
@@ -211,11 +211,11 @@ class imagenet3d(imdb):
                     index = np.tile(range(num_objs), len(cfg.TRAIN.SCALES))
                     max_overlaps = overlaps_grid.max(axis = 0)
                     fg_inds = []
-                    for k in xrange(1, self.num_classes):
+                    for k in range(1, self.num_classes):
                         fg_inds.extend(np.where((gt_classes_all == k) & (max_overlaps >= cfg.TRAIN.FG_THRESH[k-1]))[0])
                     index_covered = np.unique(index[fg_inds])
 
-                    for i in xrange(self.num_classes):
+                    for i in range(self.num_classes):
                         self._num_boxes_all[i] += len(np.where(gt_classes == i)[0])
                         self._num_boxes_covered[i] += len(np.where(gt_classes[index_covered] == i)[0])
             else:
@@ -268,10 +268,10 @@ class imagenet3d(imdb):
                 if num_objs != 0:
                     max_overlaps = overlaps_grid.max(axis = 0)
                     fg_inds = []
-                    for k in xrange(1, self.num_classes):
+                    for k in range(1, self.num_classes):
                         fg_inds.extend(np.where((gt_classes == k) & (max_overlaps >= cfg.TRAIN.FG_THRESH[k-1]))[0])
 
-                    for i in xrange(self.num_classes):
+                    for i in range(self.num_classes):
                         self._num_boxes_all[i] += len(np.where(gt_classes == i)[0])
                         self._num_boxes_covered[i] += len(np.where(gt_classes[fg_inds] == i)[0])
 
@@ -305,7 +305,7 @@ class imagenet3d(imdb):
 
         if os.path.exists(cache_file):
             with open(cache_file, 'rb') as fid:
-                roidb = cPickle.load(fid)
+                roidb = pickle.load(fid)
             print('{} roidb loaded from {}'.format(self.name, cache_file))
             return roidb
 
@@ -327,14 +327,14 @@ class imagenet3d(imdb):
 
         # print out recall
         if self._image_set != 'test':
-            for i in xrange(1, self.num_classes):
+            for i in range(1, self.num_classes):
                 print('{}: Total number of boxes {:d}'.format(self.classes[i], self._num_boxes_all[i]))
                 print('{}: Number of boxes covered {:d}'.format(self.classes[i], self._num_boxes_covered[i]))
                 if self._num_boxes_all[i] > 0:
                     print('{}: Recall {:f}'.format(self.classes[i], float(self._num_boxes_covered[i]) / float(self._num_boxes_all[i])))
 
         with open(cache_file, 'wb') as fid:
-            cPickle.dump(roidb, fid, cPickle.HIGHEST_PROTOCOL)
+            pickle.dump(roidb, fid, pickle.HIGHEST_PROTOCOL)
         print('wrote roidb to {}'.format(cache_file))
 
         return roidb
@@ -392,10 +392,10 @@ class imagenet3d(imdb):
                 if raw_data.shape[0] != 0:
                     max_overlaps = overlaps.max(axis = 0)
                     fg_inds = []
-                    for k in xrange(1, self.num_classes):
+                    for k in range(1, self.num_classes):
                         fg_inds.extend(np.where((gt_classes == k) & (max_overlaps >= cfg.TRAIN.FG_THRESH[k-1]))[0])
 
-                    for i in xrange(self.num_classes):
+                    for i in range(self.num_classes):
                         self._num_boxes_all[i] += len(np.where(gt_classes == i)[0])
                         self._num_boxes_covered[i] += len(np.where(gt_classes[fg_inds] == i)[0])
 
@@ -417,7 +417,7 @@ class imagenet3d(imdb):
                     if dets == []:
                         continue
                     # detection and viewpoint
-                    for k in xrange(dets.shape[0]):
+                    for k in range(dets.shape[0]):
                         f.write('{:s} {:f} {:f} {:f} {:f} {:.32f} {:f} {:f} {:f}\n'.format(\
                                  cls, dets[k, 0], dets[k, 1], dets[k, 2], dets[k, 3], dets[k, 4], dets[k, 6], dets[k, 7], dets[k, 8]))
 
@@ -438,7 +438,7 @@ class imagenet3d(imdb):
                     if dets == []:
                         continue
                     # detection and viewpoint
-                    for k in xrange(dets.shape[0]):
+                    for k in range(dets.shape[0]):
                         f.write('{:s} {:f} {:f} {:f} {:f} {:.32f} {:f} {:f} {:f}\n'.format(\
                                  index, dets[k, 0], dets[k, 1], dets[k, 2], dets[k, 3], dets[k, 4], dets[k, 6], dets[k, 7], dets[k, 8]))
 
@@ -455,7 +455,7 @@ class imagenet3d(imdb):
                     dets = all_boxes[cls_ind][im_ind]
                     if dets == []:
                         continue
-                    for k in xrange(dets.shape[0]):
+                    for k in range(dets.shape[0]):
                         f.write('{:f} {:f} {:f} {:f} {:.32f}\n'.format(\
                                  dets[k, 0], dets[k, 1], dets[k, 2], dets[k, 3], dets[k, 4]))
 
@@ -468,7 +468,7 @@ class imagenet3d(imdb):
                 dets = all_boxes[im_ind]
                 if dets == []:
                     continue
-                for k in xrange(dets.shape[0]):
+                for k in range(dets.shape[0]):
                     f.write('{:f} {:f} {:f} {:f} {:.32f}\n'.format(dets[k, 0], dets[k, 1], dets[k, 2], dets[k, 3], dets[k, 4]))
 
 

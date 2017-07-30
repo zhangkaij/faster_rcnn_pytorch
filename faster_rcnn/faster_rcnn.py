@@ -16,7 +16,7 @@ from .fast_rcnn.bbox_transform import bbox_transform_inv, clip_boxes
 from . import network
 from .network import Conv2d, FC
 # from roi_pooling.modules.roi_pool_py import RoIPool
-from .roi_pooling.modules.roi_pool import RoIPool
+from .roi_pooling.modules.roi_pool import RoIPool, RoIPool_test
 from .vgg16 import VGG16
 
 
@@ -226,11 +226,9 @@ class FasterRCNN(nn.Module):
             rois = roi_data[0]
 
         # roi pool
-        print(features.size())
-        print(rois.size())
-        print(torch.round(rois[:5]/16.0))
+        
         pooled_features = self.roi_pool(features, rois)
-        print(pooled_features.size())
+        
         x = pooled_features.view(pooled_features.size()[0], -1)
         x = self.fc6(x)
         x = F.dropout(x, training=self.training)
